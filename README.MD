@@ -150,4 +150,6 @@ python3 ../scripts/benchmark_cpu.py
 **Autores:** Alison Celeste Morales Jaramillo, Alonso Delfino Cervantes Flores, Nadia Paulina Ramírez Cristóbal
 **Fecha:** Diciembre 2025
 **Licencia:** MIT
+
+
 _Proyecto desarrollado para la clase de High Performance Computing en sistemas embebidos de NVIDIA (2025-1), impartido por **D.Sc. José Eduardo Chairez Veloz**_
