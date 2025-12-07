@@ -35,18 +35,18 @@ out/
 
 3. Datos e Imágenes
 
-===========================
+# ===========================
 
-(Comentado para que se suba a GitHub)
+# (Comentado para que se suba a GitHub)
 
-data/pruebas/
+# data/pruebas/
 
-Ignoramos imágenes sueltas en la raíz de data para limpieza
+# Ignoramos imágenes sueltas en la raíz de data para limpieza
 
-data/.bmp
-data/.png
-data/.jpg
-data/.jpeg
+# data/.bmp
+# data/.png
+# data/.jpg
+# data/.jpeg
 
 Excepción: Mantenemos la imagen de prueba principal para la demo
 
