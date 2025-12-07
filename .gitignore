@@ -1,0 +1,81 @@
+===========================
+
+1. Compilación y Binarios
+
+===========================
+
+build/
+bin/
+out/
+*.o
+*.obj
+*.so
+*.dylib
+*.exe
+*.dll
+
+# ===========================
+
+# 2. Modelos de IA 
+
+# ===========================
+
+# GitHub bloquea archivos >100MB. Ignoramos los binarios.
+
+# models/.engine
+# models/.plan
+# models/.trt
+# models/.onnx
+# models/.weights
+# models/.pt
+# models/.pth
+# models/.data
+
+===========================
+
+3. Datos e Imágenes
+
+===========================
+
+(Comentado para que se suba a GitHub)
+
+data/pruebas/
+
+Ignoramos imágenes sueltas en la raíz de data para limpieza
+
+data/.bmp
+data/.png
+data/.jpg
+data/.jpeg
+
+Excepción: Mantenemos la imagen de prueba principal para la demo
+
+!data/test_cell.jpg
+
+===========================
+
+4. Entorno y Sistema
+
+===========================
+
+.vscode/
+.idea/
+.DS_Store
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+*.log
+pycache/
+*.pyc
+
+===========================
+
+5. Archivos Temporales
+
+===========================
+
+Con trtexec, a veces genera estos perfiles json
+
+*.json
+*.profiling
