@@ -50,12 +50,6 @@ La organización actual del repositorio es la siguiente:
     └── preprocess.cu       # Kernels CUDA para pre-procesamiento de imágenes
 ```
 
-### Detalle de los componentes clave
-
-- **`src/preprocess.cu`**: Contiene kernels CUDA personalizados. En lugar de usar OpenCV en CPU para redimensionar y normalizar las imágenes, lo hacemos directamente en la GPU, reduciendo la latencia de transferencia de memoria.
-    
-    
-- **`src/main_demo.cpp` (cancer_demo)**: Incluye visualización con OpenCV (`imshow`) para dibujar las cajas delimitadoras (bounding boxes) sobre las detecciones.
     
 
 ## Requisitos Previos
@@ -74,61 +68,104 @@ La organización actual del repositorio es la siguiente:
         
     - CMake
         
+---
+
+## Descripción Técnica de Módulos
+
+El proyecto se compone de cuatro piezas fundamentales que separan la lógica de demostración, validación de rendimiento y optimización de hardware:
+
+### 1. `src/main_demo.cpp` (Validación Funcional)
+Es el punto de entrada para verificar la **corrección del sistema**.
+* **Función:** Carga el motor TensorRT y procesa una imagen individual (`test_cell.jpg`) para simular un diagnóstico clínico en tiempo real.
+* **Salida:** Interfaz visual en terminal (CLI) con barras de carga y reporte de probabilidad (Sano/Anomalía). Sirve para demostrar que el pipeline de inferencia funciona correctamente de principio a fin.
+
+### 2. `src/main_benchmark.cpp` (Análisis de Rendimiento HPC)
+Módulo crítico diseñado para estresar el hardware y obtener métricas puras.
+* **Función:** Ejecuta un bucle de 1000 iteraciones de inferencia continua sobre la GPU, midiendo el ciclo completo (Host-to-Device transfer + Preprocesamiento + Inferencia + Device-to-Host transfer).
+* **Salida:** Calcula y reporta la **Latencia Promedio (ms)** y el **Throughput (FPS)** real del sistema optimizado.
+
+### 3. `src/preprocess.cu` (Aceleración por Hardware)
+Contiene la implementación de bajo nivel necesaria para liberar al CPU.
+* **Función:** Define `kernels` de CUDA personalizados que se ejecutan directamente en los núcleos de la GPU.
+* **Tarea:** Realiza la normalización de píxeles, reordenamiento de canales (HWC a CHW) y escalado de imagen sin mover los datos de la memoria gráfica, eliminando cuellos de botella en el bus de memoria.
+
+### 4. `scripts/benchmark_cpu.py` (Línea Base)
+Script de Python utilizado para establecer el punto de comparación (Baseline).
+* **Función:** Ejecuta la misma arquitectura neuronal utilizando PyTorch estándar sobre el CPU.
+* **Objetivo:** Permite calcular el **Speedup (x veces más rápido)** que ofrece nuestra implementación en C++/CUDA frente a una implementación tradicional en software.
+
+### 5. `include/preprocess.h` (El Puente C++/CUDA)
+Es el archivo de cabecera que conecta dos mundos distintos.
+* **Función:** Actúa como interfaz o "contrato" entre el código C++ estándar y el compilador de NVIDIA (NVCC).
+* **Tarea:** Declara la función `launchPreprocess`, permitiendo que los ejecutables principales (`main_demo` y `main_benchmark`) puedan invocar los kernels de la GPU sin necesidad de conocer la sintaxis compleja de CUDA.
 
 ## Compilación e Instalación
 
-1. **Crear directorio de construcción:**
-    
+Sigue estos pasos estrictamente desde la terminal de tu Jetson:
+
+1.  **Clonar el repositorio y acceder a la carpeta:**
+    ```bash
+    git clone [https://github.com/dlfno/CervicalCancer-HPC.git](https://github.com/dlfno/CervicalCancer-HPC.git)
+    cd CervicalCancer-HPC
     ```
-    mkdir build
+
+2.  **Crear el directorio de construcción:**
+    ```bash
+    mkdir -p build
     cd build
     ```
-    
-2. **Configurar y Compilar:**
-    
-    ```
+
+3.  **Compilar el proyecto:**
+    ```bash
     cmake ..
     make -j$(nproc)
     ```
-    
 
-Al finalizar, tendrás los ejecutables `cancer_hpc`, `cancer_demo` y `cancer_benchmark` dentro de la carpeta `build/`.
+> **Nota:** Al finalizar, deberás ver los ejecutables `cancer_demo` y `cancer_benchmark` dentro de la carpeta `build/`.
 
-## Ejecución
+---
 
-### 1. Generación del Motor (Engine)
+## Guía de Ejecución
 
-El código espera leer un archivo `.engine`. Si aún no lo tienes generado en `build/`, debes crearlo a partir del ONNX usando `trtexec`:
+Todos los comandos deben ejecutarse desde la carpeta `build/` creada en el paso anterior.
 
-```
-# Ejecutar desde la carpeta build/
+### Paso 1: Generar el Motor TensorRT (Solo la primera vez)
+El código C++ requiere un motor optimizado. Genera el archivo `.engine` a partir del modelo ONNX usando `trtexec`:
+
+```bash
 /usr/src/tensorrt/bin/trtexec \
   --onnx=../models/cancer_detector_norm.onnx \
   --saveEngine=cancer_detector.engine \
   --fp16
-```
+````
 
-### 2. Modos de Uso
+_Si este paso no se realiza, los demos fallarán._
 
-A. Modo Demo (Visualización):
+### Paso 2: Ejecutar Demo Visual
 
-Para ver las detecciones en pantalla.
+Muestra el diagnóstico simulado en la terminal procesando una imagen de prueba.
+
+Bash
 
 ```
 ./cancer_demo
 ```
 
-Esto abrirá una ventana mostrando las células detectadas sobre las imágenes de `data/` o el video input configurado.
+### Paso 3: Benchmark de Rendimiento (HPC)
 
-B. Benchmarking (Pruebas de Estrés):
+Mide la latencia y los FPS reales utilizando la GPU + TensorRT.
 
-Para medir latencia y FPS.
+Bash
 
 ```
 ./cancer_benchmark
 ```
 
-Adicionalmente, puedes comparar contra la implementación de CPU usando el script de Python:
+### Paso 4: Comparativa con CPU 
+
+Para contrastar la velocidad obtenida, ejecuta el script de Python que corre en CPU pura:
+
+Bash
 
 ```
 python3 ../scripts/benchmark_cpu.py

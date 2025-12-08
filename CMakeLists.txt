@@ -14,7 +14,7 @@ find_package(CUDAToolkit REQUIRED)
 find_library(NVINFER_LIB nvinfer REQUIRED)
 
 # 2. Incluir directorios de cabeceras (headers)
-# 'include' es para tu preprocess.h
+# 'include' es para preprocess.h
 include_directories(include) 
 include_directories(${OpenCV_INCLUDE_DIRS})
 include_directories(${CUDAToolkit_INCLUDE_DIRS})
@@ -49,5 +49,4 @@ target_link_libraries(cancer_benchmark
     ${NVINFER_LIB}
 )
 
-# --- NOTA ---
-# Se eliminó 'cancer_hpc' porque falta src/main.cpp
+
