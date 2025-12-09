@@ -5,7 +5,7 @@
 #include <string>
 #include <cmath>
 #include <iomanip>
-#include <thread> // Para efectos de pausa dramática
+#include <thread> // Para efectos de pausa dramática, solo para demo
 #include <chrono>
 #include <opencv2/opencv.hpp>
 #include <cuda_runtime_api.h>
@@ -133,14 +133,14 @@ int main() {
     float probs[2]; 
     applySoftmax(logits, probs, 2); 
     float pRiesgo = probs[1] * 100.0f; // Índice 1 es Riesgo
-    float UMBRAL_CORTE = 1.5f;         // Umbral Validado
+    float UMBRAL_CORTE = 0.1f;         // Umbral Validado
 
     // Escalado Visual (Lupa)
     float score_visual = 0.0f;
     if (pRiesgo < UMBRAL_CORTE) {
         score_visual = (pRiesgo / UMBRAL_CORTE) * 45.0f; 
     } else {
-        float techo = 20.0f; 
+        float techo = 1.0f; 
         if (pRiesgo > techo) pRiesgo = techo;
         score_visual = 50.0f + ((pRiesgo - UMBRAL_CORTE) / (techo - UMBRAL_CORTE)) * 50.0f; 
     }
